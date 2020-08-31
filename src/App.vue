@@ -1,11 +1,24 @@
 <template>
   <div id="app">
-    <div id="nav">
+    <app-header></app-header>
 
-    </div>
-    <router-view/>
+    <app-main>
+      <router-view/>
+    </app-main>
+
+    <app-footer></app-footer>
   </div>
 </template>
+
+<script>
+export default {
+  data () {
+    return {
+      name: ''
+    }
+  }
+}
+</script>
 
 <style lang="scss">
 
