@@ -8,12 +8,14 @@
       <v-text-field
         v-model="$v.name.$model"
         label="Имя"
+        :error-messages="nameErrors"
         required
       ></v-text-field>
 
       <v-text-field
         v-model="$v.email.$model"
         label="E-mail"
+        :error-messages="emailErrors"
         required
       ></v-text-field>
 
@@ -21,6 +23,7 @@
         v-model="$v.password.$model"
         :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
         :type="showPass ? 'text' : 'password'"
+        :error-messages="passwordErrors"
         name="input-10-2"
         label="Придумайте пароль"
         hint="Не менее 10 символов"
@@ -32,6 +35,7 @@
         v-model="$v.passwordCheck.$model"
         :append-icon="showPassCheck ? 'mdi-eye' : 'mdi-eye-off'"
         :type="showPassCheck ? 'text' : 'password'"
+        :error-messages="passwordCheckErrors"
         name="input-10-2"
         label="Повторите ваш пароль"
         hint="Не менее 10 символов"
@@ -61,7 +65,7 @@
 
 <script>
 import { validationMixin } from 'vuelidate'
-import { required, maxLength, email } from 'vuelidate/lib/validators'
+import { required, minLength, email, sameAs } from 'vuelidate/lib/validators'
 
 export default {
   name: 'app-register',
@@ -80,24 +84,95 @@ export default {
     showPassCheck: false
   }),
 
+  computed: {
+    nameErrors () {
+      const errors = [];
+
+        if (!this.$v.name.$dirty) {
+          return errors;
+        }
+
+        if (!this.$v.name.minLength) {
+          errors.push('Имя должно состоять минимум из двух символов');
+        }
+
+        if (!this.$v.name.required) {
+          errors.push('Поле `имя` обязательно');
+        }
+
+      return errors;
+    },
+
+    emailErrors () {
+      const errors = [];
+
+      if (!this.$v.email.$dirty) {
+        return errors;
+      }
+
+      if (!this.$v.email.email) {
+        errors.push('E-mail некорректен');
+      }
+
+      if (!this.$v.email.required) {
+        errors.push('Поле `E-mail` обязательно');
+      }
+
+      return errors;
+    },
+
+    passwordErrors () {
+      const errors = [];
+
+      if (!this.$v.password.$dirty) {
+        return errors;
+      }
+
+      if (!this.$v.password.minLength) {
+        errors.push('Пароль должен содержать минимум 10 символов');
+      }
+
+      if (!this.$v.password.required) {
+        errors.push('Поле `пароль` обязателен');
+      }
+
+      return errors;
+    },
+
+    passwordCheckErrors () {
+      const errors = [];
+
+      if (!this.$v.passwordCheck.$dirty) {
+        return errors;
+      }
+
+      if (!this.$v.passwordCheck.sameAsPassword) {
+        errors.push('Введенные пароли не совпадают');
+      }
+
+      return errors;
+    }
+  },
+
   validations: {
-    name: { required },
-    email: { required },
-    password: { required },
-    passwordCheck: { required }
+    name: { required, minLength: minLength(2) },
+    email: { required, email },
+    password: { required, minLength: minLength(10) },
+    passwordCheck: { sameAsPassword: sameAs('password') }
   },
 
   methods: {
     validate () {
-      this.$refs.form.validate()
+      this.$v.$touch();
     },
 
     reset () {
-      this.$refs.form.reset()
-    },
+      this.name = '';
+      this.email = '';
+      this.password = '';
+      this.passwordCheck = '';
 
-    resetValidation () {
-      this.$refs.form.resetValidation()
+      this.$v.$reset();
     }
   }
 }
