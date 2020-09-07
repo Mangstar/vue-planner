@@ -1,65 +1,67 @@
 <template>
   <v-row justify="center" align="center">
-    <v-form
-      ref="form"
-      v-model="isValid"
-      lazy-validation
-    >
-      <v-text-field
-        v-model="$v.name.$model"
-        label="Имя"
-        :error-messages="nameErrors"
-        required
-      ></v-text-field>
-
-      <v-text-field
-        v-model="$v.email.$model"
-        label="E-mail"
-        :error-messages="emailErrors"
-        required
-      ></v-text-field>
-
-      <v-text-field
-        v-model="$v.password.$model"
-        :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
-        :type="showPass ? 'text' : 'password'"
-        :error-messages="passwordErrors"
-        name="input-10-2"
-        label="Придумайте пароль"
-        hint="Не менее 10 символов"
-        class="input-group--focused"
-        @click:append="showPass = !showPass"
-      ></v-text-field>
-
-      <v-text-field
-        v-model="$v.passwordCheck.$model"
-        :append-icon="showPassCheck ? 'mdi-eye' : 'mdi-eye-off'"
-        :type="showPassCheck ? 'text' : 'password'"
-        :error-messages="passwordCheckErrors"
-        name="input-10-2"
-        label="Повторите ваш пароль"
-        hint="Не менее 10 символов"
-        class="input-group--focused"
-        @click:append="showPassCheck = !showPassCheck"
-      ></v-text-field>
-
-      <v-btn
-        :disabled="!isValid"
-        color="success"
-        class="mr-4"
-        @click="validate"
+    <v-col cols="4">
+      <v-form
+        ref="form"
+        v-model="isValid"
+        lazy-validation
       >
-        Зарегистрироваться
-      </v-btn>
+        <v-text-field
+          v-model="$v.name.$model"
+          label="Имя"
+          :error-messages="nameErrors"
+          required
+        ></v-text-field>
 
-      <v-btn
-        color="error"
-        class="mr-4"
-        @click="reset"
-      >
-        Очистить форму
-      </v-btn>
-    </v-form>
+        <v-text-field
+          v-model="$v.email.$model"
+          label="E-mail"
+          :error-messages="emailErrors"
+          required
+        ></v-text-field>
+
+        <v-text-field
+          v-model="$v.password.$model"
+          :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+          :type="showPass ? 'text' : 'password'"
+          :error-messages="passwordErrors"
+          name="input-10-2"
+          label="Придумайте пароль"
+          hint="Не менее 10 символов"
+          class="input-group--focused"
+          @click:append="showPass = !showPass"
+        ></v-text-field>
+
+        <v-text-field
+          v-model="$v.passwordCheck.$model"
+          :append-icon="showPassCheck ? 'mdi-eye' : 'mdi-eye-off'"
+          :type="showPassCheck ? 'text' : 'password'"
+          :error-messages="passwordCheckErrors"
+          name="input-10-2"
+          label="Повторите ваш пароль"
+          hint="Не менее 10 символов"
+          class="input-group--focused"
+          @click:append="showPassCheck = !showPassCheck"
+        ></v-text-field>
+
+        <v-btn
+          :disabled="!isValid"
+          color="success"
+          class="mr-4"
+          @click="validate"
+        >
+          Зарегистрироваться
+        </v-btn>
+
+        <v-btn
+          color="error"
+          class="mr-4"
+          @click="reset"
+        >
+          Очистить форму
+        </v-btn>
+      </v-form>
+    </v-col>
   </v-row>
 </template>
 

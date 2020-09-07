@@ -1,0 +1,157 @@
+<template>
+  <div class="app-planner-wr">
+    <div class="app-planner">
+      <header class="app-planner-header">
+        <v-row align="center"
+               justify="space-between"
+        >
+          <v-col cols="1">
+            <v-btn outlined
+                   fab
+                   color="primary"
+                   small
+            >
+              <v-icon>mdi-chevron-left</v-icon>
+            </v-btn>
+          </v-col>
+
+          <v-col cols="10">
+            <v-row align="center">
+              <v-col cols="2">
+                <div class="app-planner-header-datetime">
+                  <div class="app-planner-header-time">{{ currentTimePrinted }}</div>
+                  <div class="app-planner-header-date">{{ currentDatePrinted }}</div>
+                </div>
+              </v-col>
+
+              <v-col cols="8" offset="1">
+                <div class="app-planner-header-status">
+                  <v-alert type="info" class="mb-0">
+                    {{ dayStatusMessage.empty }}
+                  </v-alert>
+                </div>
+              </v-col>
+            </v-row>
+          </v-col>
+
+          <v-col cols="1">
+            <v-btn outlined
+                   fab
+                   color="primary"
+                   small
+            >
+              <v-icon>mdi-chevron-right</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </header>
+
+      <div class="app-planner-content">
+        <div class="app-planner-day-list" v-cloak>
+          <v-row>
+            <v-col v-for="weekDay in weekDays"
+                   :key="weekDay"
+            >
+              <app-planner-cell-header>{{ weekDay }}</app-planner-cell-header>
+            </v-col>
+          </v-row>
+
+          <v-row v-for="weekIndex in monthWeeks"
+                 :key="weekIndex"
+          >
+            <v-col>
+              <app-planner-cell>{{ day }}</app-planner-cell>
+            </v-col>
+          </v-row>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import AppPlannerCellHeader from './PlannerCellHeader';
+import AppPlannerCell from './PlannerCell';
+import { FORMAT } from '@/assets/JS_CONSTS';
+
+export default {
+  name: 'app-planner',
+
+  components: {
+    AppPlannerCellHeader,
+    AppPlannerCell
+  },
+
+  data: () => ({
+    currentMode: 'month',
+
+    currentTime: '',
+    currentDate: '',
+
+    dayStatusMessage: {
+      empty: 'На сегодня задач нет',
+      processing: 'Задачи в работе',
+      complited: 'Все задачи завершены',
+      expired: 'Задачи просрочены'
+    },
+
+    timeTickInterval: null
+  }),
+
+  computed: {
+    currentDatePrinted () {
+      return this.currentDate.format(FORMAT.DATE_LONG)
+    },
+
+    currentTimePrinted () {
+      return this.$date(this.currentTime).format(FORMAT.TIME)
+    },
+
+    weekDays () {
+      return this.$date.weekdays()
+    },
+
+    monthStart () {
+      return this.$date(this.currentDate).startOf('month');
+    },
+
+    monthEnd () {
+      return this.$date(this.currentDate).endOf('month')
+    },
+
+    monthWeeks () {
+      return Math.ceil(this.monthEnd.diff(this.monthStart, 'week', true));
+    },
+
+    plannerCells () {
+      if (this.currentMode === 'month') {
+        let matrixMonth = [];
+        let weekIndex = this.monthWeeks;
+
+        while (weekIndex--) {
+          matrixMonth.push([
+            this.$date(this.currentDate)
+          ]);
+        }
+
+        return matrixMonth;
+      }
+    },
+
+
+  },
+
+  created () {
+    this.timeTick();
+    this.currentDate = this.$date();
+  },
+
+  methods: {
+    timeTick () {
+      this.timeTickInterval = setInterval(() => {
+        this.currentTime = this.$date();
+      }, 1000);
+    }
+  }
+}
+</script>
