@@ -34,7 +34,7 @@
             </v-row>
           </v-col>
 
-          <v-col cols="1">
+          <v-col cols="1" class="d-flex justify-end">
             <v-btn outlined
                    fab
                    color="primary"
@@ -56,11 +56,15 @@
             </v-col>
           </v-row>
 
-          <v-row v-for="weekIndex in monthWeeks"
-                 :key="weekIndex"
+          <v-row v-for="(week, index) in plannerCells"
+                 :key="index"
           >
-            <v-col>
-              <app-planner-cell>{{ day }}</app-planner-cell>
+            <v-col v-for="(day, index) in week"
+                   :key="index"
+            >
+              <app-planner-cell :isActive="isActiveDate(day)">
+                {{ day.format('DD') }}
+              </app-planner-cell>
             </v-col>
           </v-row>
         </div>
@@ -119,26 +123,28 @@ export default {
       return this.$date(this.currentDate).endOf('month')
     },
 
-    monthWeeks () {
+    monthWeeksTotal () {
       return Math.ceil(this.monthEnd.diff(this.monthStart, 'week', true));
     },
 
     plannerCells () {
       if (this.currentMode === 'month') {
         let matrixMonth = [];
-        let weekIndex = this.monthWeeks;
+        let currentDate = this.monthStart.day(1);
 
-        while (weekIndex--) {
-          matrixMonth.push([
-            this.$date(this.currentDate)
-          ]);
+        for (let weekIndex = 0; weekIndex < this.monthWeeksTotal; weekIndex++) {
+          matrixMonth[weekIndex] = [];
+
+          for (let weekDayIndex = 1; weekDayIndex <= 7; weekDayIndex++) {
+            matrixMonth[weekIndex].push(currentDate);
+
+            currentDate = currentDate.add(1, 'day');
+          }
         }
 
         return matrixMonth;
       }
     },
-
-
   },
 
   created () {
@@ -151,6 +157,10 @@ export default {
       this.timeTickInterval = setInterval(() => {
         this.currentTime = this.$date();
       }, 1000);
+    },
+
+    isActiveDate (day) {
+      return day.valueOf() === this.currentDate.startOf('day').valueOf()
     }
   }
 }

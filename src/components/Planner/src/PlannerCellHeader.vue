@@ -15,3 +15,14 @@ export default {
   })
 }
 </script>
+
+<style lang="scss" scoped>
+.app-planner-cell-header {
+  box-sizing: border-box;
+  padding: 15px;
+  border: 1px solid #EEEEEE;
+  text-align: center;
+  font-weight: bold;
+  background-color: #EEEEEE;
+}
+</style>
