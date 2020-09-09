@@ -10,6 +10,8 @@
                    fab
                    color="primary"
                    small
+                   class="app-planner-prev-period-btn"
+                   @click="showPrevMonth"
             >
               <v-icon>mdi-chevron-left</v-icon>
             </v-btn>
@@ -39,6 +41,8 @@
                    fab
                    color="primary"
                    small
+                   class="app-planner-next-period-btn"
+                   @click="showNextMonth"
             >
               <v-icon>mdi-chevron-right</v-icon>
             </v-btn>
@@ -48,25 +52,33 @@
 
       <div class="app-planner-content">
         <div class="app-planner-day-list" v-cloak>
-          <v-row>
-            <v-col v-for="weekDay in weekDays"
-                   :key="weekDay"
-            >
-              <app-planner-cell-header>{{ weekDay }}</app-planner-cell-header>
-            </v-col>
-          </v-row>
+          <header class="app-planner-day-list-titles">
+            <v-row>
+              <v-col v-for="weekDay in weekDays"
+                     :key="weekDay"
+              >
+                <app-planner-cell-header>{{ weekDay }}</app-planner-cell-header>
+              </v-col>
+            </v-row>
+          </header>
 
-          <v-row v-for="(week, index) in plannerCells"
-                 :key="index"
-          >
-            <v-col v-for="(day, index) in week"
+          <div class="app-planner-day-list-content">
+            <v-row v-for="(week, index) in plannerCells"
                    :key="index"
             >
-              <app-planner-cell :isActive="isActiveDate(day)">
-                {{ day.format('DD') }}
-              </app-planner-cell>
-            </v-col>
-          </v-row>
+              <v-col v-for="(day, index) in week"
+                     :key="index"
+              >
+                <app-planner-cell :isActive="isActiveDate(day)">
+                  <template v-slot:title>
+                    {{ day.format('DD') }}
+                  </template>
+
+                  {{ day.format('DD MMMM YYYY') }}
+                </app-planner-cell>
+              </v-col>
+            </v-row>
+          </div>
         </div>
       </div>
     </div>
@@ -161,7 +173,40 @@ export default {
 
     isActiveDate (day) {
       return day.valueOf() === this.currentDate.startOf('day').valueOf()
+    },
+
+    showNextMonth () {
+      this.currentDate = this.currentDate.add(1, 'month');
+    },
+
+    showPrevMonth () {
+      this.currentDate = this.currentDate.subtract(1, 'month');
     }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.app-planner {
+  &-prev-period-btn {
+    transform: translateX(25px);
+  }
+
+  &-next-period-btn {
+    transform: translateX(-25px);
+  }
+}
+
+.app-planner-day-list {
+  perspective: 500px;
+
+  &-titles {
+    width: 95%;
+    margin: 0 auto;
+  }
+
+  &-content {
+    transform: rotateX(10deg);
+  }
+}
+</style>
