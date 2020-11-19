@@ -156,6 +156,8 @@ export default {
 
         return matrixMonth;
       }
+
+      return null;
     },
   },
 
