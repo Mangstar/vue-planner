@@ -1,4 +1,5 @@
 import http from '@/api/index';
+import axios from 'axios';
 
 export default {
   namespaced: true,
@@ -92,7 +93,7 @@ export default {
 
     async logout (context)
     {
-      let { data } = await http.post('/auth/logout');
+      let { data } = await http.post('/auth/logout', null, { withCredentials: true });
 
       return data;
     }

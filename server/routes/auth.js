@@ -157,6 +157,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/reftoken', async (req, res) => {
   const token = req.cookies.refreshToken;
+
   try
   {
     const existsToken = await RToken.findOne({
@@ -202,7 +203,6 @@ router.post('/reftoken', async (req, res) => {
     }
     catch (err)
     {
-      console.log(err)
       res.status(403)
          .json({
            message: 'Ваш токен не действителен'
@@ -211,7 +211,50 @@ router.post('/reftoken', async (req, res) => {
   }
   catch (err)
   {
+    res.status(400)
+       .json({
+         success: false,
+         message: err.message
+       });
+  }
+});
 
+router.post('/logout', async (req, res) => {
+  const token = req.cookies.refreshToken;
+  console.log('token', token);
+
+  try
+  {
+    const existsToken = await RToken.findOne({
+      token
+    });
+
+    if (!existsToken)
+    {
+      return res.status(403)
+                .json({
+                  message: 'Ваш токен не действителен'
+                })
+    }
+
+    const response = await RToken.findOneAndDelete({
+      token
+    });
+
+    if (response)
+    {
+      res.clearCookie('refreshToken').json({
+        success: true
+      });
+    }
+  }
+  catch (err)
+  {
+    res.status(400)
+       .json({
+         success: false,
+         message: err.message
+       });
   }
 });
 

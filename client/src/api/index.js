@@ -1,11 +1,8 @@
 import axios from 'axios';
-import Store from '../store/index';
 
+const baseURL = 'http://localhost:3000';
 const commonInstance = axios.create({
-  baseURL: 'http://localhost:3000'
-});
-const authInstance = axios.create({
-  baseURL: 'http://localhost:3000'
+  baseURL
 });
 
 commonInstance.interceptors.request.use(async (config) => {
@@ -13,13 +10,15 @@ commonInstance.interceptors.request.use(async (config) => {
   {
     const [, payload] = config.headers.common['auth-token'].split('.');
     const payloadEncoded = JSON.parse(atob(payload));
-    const isExpired = +new Date(payloadEncoded['exp'] * 1000) < Date.now();
-    console.log('payloadEncoded', payloadEncoded);
-    console.log('payloadEncoded', new Date(payloadEncoded['exp'] * 1000));
+    const accessTokenExpired = +new Date(payloadEncoded['exp'] * 1000) < Date.now();
 
-    if (isExpired)
+    if (accessTokenExpired)
     {
-      const response = await authInstance.post('/auth/reftoken', null, { withCredentials: true });
+      const response = await axios.post(
+        `${baseURL}/auth/reftoken`,
+        null,
+        { withCredentials: true }
+      );
 
       if (response.data.success)
       {

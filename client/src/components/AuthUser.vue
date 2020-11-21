@@ -19,7 +19,7 @@
         </v-list>
       </v-menu>
 
-      <v-btn color="success" class="auth-user-btn">
+      <v-btn color="success" class="auth-user-btn" @click="logout">
         Выйти
       </v-btn>
     </div>
@@ -28,6 +28,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import http from '@/api/index';
 
 export default {
   name: 'auth-user',
@@ -44,6 +45,27 @@ export default {
     ...mapGetters('auth', [
       'login'
     ])
+  },
+
+  methods: {
+    async logout ()
+    {
+      try {
+        const response = await this.$store.dispatch('auth/logout');
+
+        if (response.success)
+        {
+          localStorage.removeItem('auth-token');
+          delete http.defaults.headers.common['auth-token'];
+
+          this.$router.push({
+            name: 'login'
+          });
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }
 }
 </script>

@@ -10,7 +10,7 @@
     </v-app-bar>
 
     <v-main>
-      <router-view />
+      <router-view v-if="rendered" />
     </v-main>
   </v-app>
 </template>
@@ -20,7 +20,7 @@ import authUser from '@/components/AuthUser';
 import http from '@/api/index';
 import router from '@/router/index';
 
-import { mapGetters } from 'vuex';
+import { mapGetters, mapMutations } from 'vuex';
 
 export default {
   name: 'App',
@@ -32,7 +32,7 @@ export default {
   directives: {},
 
   data: () => ({
-    //
+    rendered: false
   }),
 
   computed: {
@@ -43,14 +43,31 @@ export default {
 
   created ()
   {
-    if (localStorage['auth-token'])
+    const commonReqHeaders = http.defaults.headers.common;
+    const accessToken = localStorage['auth-token'];
+
+    if (accessToken)
     {
-      http.defaults.headers.common['auth-token'] = localStorage['auth-token'];
+      const [, payload] = accessToken.split('.');
+      const payloadEncoded = JSON.parse(atob(payload));
+      const login = payloadEncoded.login;
+
+      commonReqHeaders['auth-token'] = accessToken;
+      this.setLogin(login);
     }
-    console.log(3333);
+    else
+    {
+      this.$router.push({
+        name: 'login'
+      });
+    }
+
+    this.$nextTick(() => {
+      this.rendered = true;
+    });
 
     router.beforeEach((to, from, next) => {
-      if (!(to.name === 'login' || to.name === 'register') && http.defaults.headers.common['auth-token'] == null)
+      if (!(to.name === 'login' || to.name === 'register') && commonReqHeaders['auth-token'] == null)
       {
         next({ name: 'login' });
       }
@@ -61,6 +78,20 @@ export default {
     });
   },
 
-  methods: {},
+  watch: {
+    $route: {
+      deep: true,
+      handler ()
+      {
+        console.log(888);
+      }
+    }
+  },
+
+  methods: {
+    ...mapMutations('auth', [
+      'setLogin'
+    ]),
+  },
 };
 </script>

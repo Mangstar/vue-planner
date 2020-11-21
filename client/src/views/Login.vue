@@ -39,7 +39,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import http from '../api/index';
 
 export default {
