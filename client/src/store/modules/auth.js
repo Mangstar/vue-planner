@@ -64,7 +64,7 @@ export default {
 
     async login ({ commit }, payload)
     {
-      let { data: response } = await http.post('/auth/login', payload);
+      let { data: response } = await http.post('/auth/login', payload, { withCredentials: true });
 
       if (response.success)
       {
@@ -74,7 +74,20 @@ export default {
         commit('setRefreshToken', response.data.refreshToken);
       }
 
-      return response.data;
+      return response;
+    },
+
+    async refresh ({ commit }, payload)
+    {
+      let { data: response } = await http.post('/auth/reftoken', payload);
+
+      if (response.success)
+      {
+        commit('setAccessToken', response.data.accessToken);
+        commit('setRefreshToken', response.data.refreshToken);
+      }
+
+      return response;
     },
 
     async logout (context)

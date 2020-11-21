@@ -161,9 +161,16 @@ export default {
     },
   },
 
-  created () {
+  async created () {
     this.timeTick();
     this.currentDate = this.$date();
+    console.log(2222)
+
+    await this.$store.dispatch('fetchPosts');
+
+    setTimeout(async () => {
+      await this.$store.dispatch('fetchPosts');
+    }, 10000);
   },
 
   methods: {

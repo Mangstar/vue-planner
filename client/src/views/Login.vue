@@ -39,6 +39,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+import http from '../api/index';
+
 export default {
   name: 'app-login',
 
@@ -68,6 +71,10 @@ export default {
 
         if (response.success)
         {
+          localStorage['auth-token'] = response.data.accessToken;
+
+          http.defaults.headers.common['auth-token'] = response.data.accessToken;
+
           this.$router.push({
             name: 'home'
           });

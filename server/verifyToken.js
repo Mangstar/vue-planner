@@ -2,6 +2,11 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function (req, res, next)
 {
+  if (req.originalUrl === '/auth/reftoken')
+  {
+    return next();
+  }
+
   const authToken = req.headers['auth-token'];
 
   if (!authToken)
@@ -12,7 +17,8 @@ module.exports = function (req, res, next)
               })
   }
 
-  try {
+  try
+  {
     const verified = jwt.verify(
       authToken,
       process.env.ACCESS_SECRET_TOKEN
@@ -21,7 +27,9 @@ module.exports = function (req, res, next)
     req.user = verified;
 
     next();
-  } catch (err) {
+  }
+  catch (err)
+  {
     res.status(403)
        .send({
          message: 'Ваш токен не действителен'

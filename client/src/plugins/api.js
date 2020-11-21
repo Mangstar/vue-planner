@@ -8,4 +8,17 @@ const axiosInstance = axios.create({
   }
 });
 
+axiosInstance.interceptors.response.use(function (config) {
+  const payload = Store.getters['auth/accessToken'].split('.')[1];
+  const payloadEncoded = atob(payload);
+
+  console.log('payloadEncoded', new Date(payloadEncoded.ext * 1000));
+
+  return config;
+}, function (error) {
+  console.log('1111')
+
+  return Promise.reject(error);
+});
+
 export default axiosInstance;

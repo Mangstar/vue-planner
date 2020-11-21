@@ -9,7 +9,7 @@ function _generateAToken (payload)
 {
   return jwt.sign(
     payload,
-    process.env.ACCESS_SECRET_TOKEN, { expiresIn: '1h' }
+    process.env.ACCESS_SECRET_TOKEN, { expiresIn: '10s' }
   );
 }
 
@@ -17,7 +17,7 @@ function _generateRToken (payload)
 {
   return jwt.sign(
     payload,
-    process.env.REFRESH_SECRET_TOKEN
+    process.env.REFRESH_SECRET_TOKEN, { expiresIn: '8h' }
   )
 }
 
@@ -26,7 +26,7 @@ async function updateRToken (user, refreshToken)
   try
   {
     await RToken.findOneAndDelete({
-      userId: user._id
+      token: refreshToken
     });
     await new RToken({
       userId: user._id,
@@ -142,20 +142,21 @@ router.post('/login', async (req, res) => {
 
   await updateRToken(user, refreshToken);
 
-  res.json({
+  res.cookie('refreshToken', refreshToken, {
+    expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
+    httpOnly: true
+  }).send({
     success: true,
     data: {
       id: user._id,
       login: user.login,
-      accessToken,
-      refreshToken
+      accessToken
     }
   });
 });
 
 router.post('/reftoken', async (req, res) => {
-  const token = req.body.token;
-
+  const token = req.cookies.refreshToken;
   try
   {
     const existsToken = await RToken.findOne({
@@ -177,18 +178,31 @@ router.post('/reftoken', async (req, res) => {
         process.env.REFRESH_SECRET_TOKEN
       );
 
-      const accessToken = _generateAToken(user);
-      const refreshToken = _generateRToken(user);
+      const accessToken = _generateAToken({
+        _id: user._id,
+        login: user.login
+      });
+      const refreshToken = _generateRToken({
+        _id: user._id,
+        login: user.login
+      });
 
-      await updateRToken(user, refreshToken);
+      await updateRToken({
+        _id: user._id,
+        login: user.login
+      }, refreshToken);
 
-      res.json({
+      res.cookie('refreshToken', refreshToken, {
+        expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
+        httpOnly: true
+      }).json({
         success: true,
-        accessToken, refreshToken
+        accessToken
       });
     }
     catch (err)
     {
+      console.log(err)
       res.status(403)
          .json({
            message: 'Ваш токен не действителен'

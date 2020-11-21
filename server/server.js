@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const getMongoConnection = require('./db/index');
 
 const app = express();
@@ -13,10 +14,21 @@ const PORT = 3000;
 const authRoutes = require('./routes/auth');
 const verifyToken = require('./verifyToken');
 
-app.use(express.json());
-app.use(cors());
+const allowlist = ['http://localhost:8080', 'http://localhost:3000']
+const corsOptionsDelegate = function (req, callback) {
+  let corsOptions = { credentials: true };
 
-// console.log(authRoutes);
+  if (allowlist.indexOf(req.header('Origin')) !== -1) {
+    corsOptions.origin = true;
+  } else {
+    corsOptions.origin = false;
+  }
+  callback(null, corsOptions)
+}
+
+app.use(express.json());
+app.use(cors(corsOptionsDelegate));
+app.use(cookieParser());
 
 require('./routes/auth');
 
