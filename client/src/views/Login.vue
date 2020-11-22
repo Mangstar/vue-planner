@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import http from '../api/index';
+import http from '@/api/index';
 
 export default {
   name: 'app-login',
@@ -79,9 +79,9 @@ export default {
           });
         }
       }
-      catch (err)
+      catch (error)
       {
-        console.log(err);
+        console.log(error);
       }
     },
 

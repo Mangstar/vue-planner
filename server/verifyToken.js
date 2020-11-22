@@ -2,17 +2,13 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function (req, res, next)
 {
-  if (req.originalUrl === '/auth/reftoken')
-  {
-    return next();
-  }
-
   const authToken = req.headers['auth-token'];
 
   if (!authToken)
   {
     return res.status(401)
-              .send({
+              .json({
+                success: false,
                 message: 'Вы не авторизованы'
               })
   }
@@ -28,10 +24,11 @@ module.exports = function (req, res, next)
 
     next();
   }
-  catch (err)
+  catch (error)
   {
     res.status(403)
-       .send({
+       .json({
+         success: false,
          message: 'Ваш токен не действителен'
        })
   }

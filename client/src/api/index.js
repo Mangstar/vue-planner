@@ -14,15 +14,16 @@ commonInstance.interceptors.request.use(async (config) => {
 
     if (accessTokenExpired)
     {
-      const response = await axios.post(
+      const { data: response } = await axios.post(
         `${baseURL}/auth/reftoken`,
         null,
         { withCredentials: true }
       );
 
-      if (response.data.success)
+      if (response.success)
       {
         localStorage['auth-token'] = response.data.accessToken;
+
         config.headers.common['auth-token'] = response.data.accessToken;
       }
     }

@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapMutations } from 'vuex';
 import http from '@/api/index';
 
 export default {
@@ -48,22 +48,35 @@ export default {
   },
 
   methods: {
+    ...mapMutations('auth', [
+      'setId',
+      'setLogin'
+    ]),
+
     async logout ()
     {
-      try {
-        const response = await this.$store.dispatch('auth/logout');
+      let response = null;
+      try
+      {
+        response = await this.$store.dispatch('auth/logout');
 
         if (response.success)
         {
           localStorage.removeItem('auth-token');
+
           delete http.defaults.headers.common['auth-token'];
+
+          this.setId(null);
+          this.setLogin(null);
 
           this.$router.push({
             name: 'login'
           });
         }
-      } catch (err) {
-        console.log(err);
+      }
+      catch (error)
+      {
+        console.log(error);
       }
     }
   }

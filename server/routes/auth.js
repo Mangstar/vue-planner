@@ -9,7 +9,7 @@ function _generateAToken (payload)
 {
   return jwt.sign(
     payload,
-    process.env.ACCESS_SECRET_TOKEN, { expiresIn: '10s' }
+    process.env.ACCESS_SECRET_TOKEN, { expiresIn: '10m' }
   );
 }
 
@@ -19,6 +19,14 @@ function _generateRToken (payload)
     payload,
     process.env.REFRESH_SECRET_TOKEN, { expiresIn: '8h' }
   )
+}
+
+function _getCookieOptions ()
+{
+  return {
+    expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
+    httpOnly: true
+  }
 }
 
 async function updateRToken (user, refreshToken)
@@ -33,9 +41,9 @@ async function updateRToken (user, refreshToken)
       token: refreshToken
     }).save();
   }
-  catch (err)
+  catch (error)
   {
-    console.error(err);
+    throw new Error(error.message);
   }
 }
 
@@ -47,26 +55,20 @@ router.post('/register', async (req, res) => {
   };
   const { error } = registerValidation(userData);
 
-  if (error)
-  {
-    return res.status(400).json({
-      success: false,
-      message: error.message
-    });
-  }
-
   try
   {
+    if (error)
+    {
+      throw new Error(error.message);
+    }
+
     const existsUser = await User.findOne({
       login: userData.login
     });
 
     if (existsUser)
     {
-      return res.status(400).json({
-        success: false,
-        message: 'Пользователь с указанным логином уже существует'
-      });
+      throw new Error('Пользователь с указанным логином уже существует');
     }
 
     const passwordSalt = await bcript.genSalt(10);
@@ -86,11 +88,11 @@ router.post('/register', async (req, res) => {
       });
     }
   }
-  catch (err)
+  catch (error)
   {
     return res.status(400).json({
       success: false,
-      message: err.message
+      message: error.message
     });
   }
 });
@@ -102,57 +104,50 @@ router.post('/login', async (req, res) => {
   };
   const { error } = loginValidation(userData);
 
-  if (error)
+  try
   {
-    res.status(400).json({
+    if (error)
+    {
+      throw new Error(error.message);
+    }
+
+    const existsUser = await User.findOne({
+      login: userData.login
+    });
+
+    if (!existsUser)
+    {
+      throw new Error('Неверный логин или пароль');
+    }
+
+    const isPasswordCorrect = await bcript.compare(userData.password, existsUser.password);
+
+    if (!isPasswordCorrect)
+    {
+      throw new Error('Неверный логин или пароль');
+    }
+
+    const user = { _id: existsUser._id, login: existsUser.login };
+    const accessToken = _generateAToken(user);
+    const refreshToken = _generateRToken(user);
+
+    await updateRToken(user, refreshToken);
+
+    res.cookie('refreshToken', refreshToken, _getCookieOptions()).json({
+      success: true,
+      data: {
+        ...user,
+        accessToken
+      }
+    });
+  }
+  catch (error)
+  {
+    return res.status(400).json({
       success: false,
       message: error.message
     });
   }
-
-  const existsUser = await User.findOne({
-    login: userData.login
-  });
-
-  if (!existsUser)
-  {
-    return res.status(400).json({
-      success: false,
-      message: 'Неверный логин или пароль'
-    });
-  }
-
-  const isPasswordCorrect = await bcript.compare(userData.password, existsUser.password);
-
-  if (!isPasswordCorrect)
-  {
-    return res.status(400).json({
-      success: false,
-      message: 'Неверный логин или пароль'
-    })
-  }
-
-  const user = {
-    _id: existsUser._id,
-    login: existsUser.login
-  };
-
-  const accessToken = _generateAToken(user);
-  const refreshToken = _generateRToken(user);
-
-  await updateRToken(user, refreshToken);
-
-  res.cookie('refreshToken', refreshToken, {
-    expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
-    httpOnly: true
-  }).send({
-    success: true,
-    data: {
-      id: user._id,
-      login: user.login,
-      accessToken
-    }
-  });
 });
 
 router.post('/reftoken', async (req, res) => {
@@ -160,71 +155,61 @@ router.post('/reftoken', async (req, res) => {
 
   try
   {
+    if (!token)
+    {
+      return res.status(400)
+                .json({
+                  success: false,
+                  message: 'Refresh токен не передан'
+                });
+    }
+
     const existsToken = await RToken.findOne({
       token
     });
 
     if (!existsToken)
     {
-      return res.status(403)
-                .json({
-                  message: 'Ваш токен не действителен'
-                })
+      throw new Error('Ваш токен не действителен');
     }
 
-    try
-    {
-      const user = await jwt.verify(
-        token,
-        process.env.REFRESH_SECRET_TOKEN
-      );
+    const existsUser = jwt.verify(
+      token,
+      process.env.REFRESH_SECRET_TOKEN
+    );
+    const user = { _id: existsUser._id, login: existsUser.login };
+    const accessToken = _generateAToken(user);
+    const refreshToken = _generateRToken(user);
 
-      const accessToken = _generateAToken({
-        _id: user._id,
-        login: user.login
-      });
-      const refreshToken = _generateRToken({
-        _id: user._id,
-        login: user.login
-      });
+    await updateRToken(user, refreshToken);
 
-      await updateRToken({
-        _id: user._id,
-        login: user.login
-      }, refreshToken);
-
-      res.cookie('refreshToken', refreshToken, {
-        expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
-        httpOnly: true
-      }).json({
-        success: true,
+    res.cookie('refreshToken', refreshToken, _getCookieOptions()).json({
+      success: true,
+      data: {
         accessToken
-      });
-    }
-    catch (err)
-    {
-      res.status(403)
-         .json({
-           message: 'Ваш токен не действителен'
-         });
-    }
+      }
+    });
   }
-  catch (err)
+  catch (error)
   {
-    res.status(400)
+    res.status(403)
        .json({
          success: false,
-         message: err.message
+         message: error.message
        });
   }
 });
 
 router.post('/logout', async (req, res) => {
   const token = req.cookies.refreshToken;
-  console.log('token', token);
 
   try
   {
+    if (!token)
+    {
+      throw new Error('Refresh токен не передан');
+    }
+
     const existsToken = await RToken.findOne({
       token
     });
@@ -248,12 +233,12 @@ router.post('/logout', async (req, res) => {
       });
     }
   }
-  catch (err)
+  catch (error)
   {
     res.status(400)
        .json({
          success: false,
-         message: err.message
+         message: error.message
        });
   }
 });

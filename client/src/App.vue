@@ -10,7 +10,7 @@
     </v-app-bar>
 
     <v-main>
-      <router-view v-if="rendered" />
+      <router-view />
     </v-main>
   </v-app>
 </template>
@@ -41,19 +41,24 @@ export default {
     ])
   },
 
-  created ()
+  async created ()
   {
-    const commonReqHeaders = http.defaults.headers.common;
+    const httpCommonReqHeaders = http.defaults.headers.common;
     const accessToken = localStorage['auth-token'];
 
     if (accessToken)
     {
       const [, payload] = accessToken.split('.');
       const payloadEncoded = JSON.parse(atob(payload));
-      const login = payloadEncoded.login;
+      const user = {
+        id: payloadEncoded.id,
+        login: payloadEncoded.login
+      };
 
-      commonReqHeaders['auth-token'] = accessToken;
-      this.setLogin(login);
+      httpCommonReqHeaders['auth-token'] = accessToken;
+
+      this.setId(user.id);
+      this.setLogin(user.login);
     }
     else
     {
@@ -62,12 +67,8 @@ export default {
       });
     }
 
-    this.$nextTick(() => {
-      this.rendered = true;
-    });
-
     router.beforeEach((to, from, next) => {
-      if (!(to.name === 'login' || to.name === 'register') && commonReqHeaders['auth-token'] == null)
+      if (!(to.name === 'login' || to.name === 'register') && httpCommonReqHeaders['auth-token'] == null)
       {
         next({ name: 'login' });
       }
@@ -79,17 +80,12 @@ export default {
   },
 
   watch: {
-    $route: {
-      deep: true,
-      handler ()
-      {
-        console.log(888);
-      }
-    }
+
   },
 
   methods: {
     ...mapMutations('auth', [
+      'setId',
       'setLogin'
     ]),
   },

@@ -1,14 +1,11 @@
 import http from '@/api/index';
-import axios from 'axios';
 
 export default {
   namespaced: true,
 
   state: {
     id: null,
-    login: null,
-    accessToken: null,
-    refreshToken: null
+    login: null
   },
 
   getters: {
@@ -20,16 +17,6 @@ export default {
     login (state)
     {
       return state.login
-    },
-
-    accessToken (state)
-    {
-      return state.accessToken;
-    },
-
-    refreshToken (state)
-    {
-      return state.refreshToken;
     }
   },
 
@@ -42,16 +29,6 @@ export default {
     setLogin (state, payload)
     {
       state.login = payload;
-    },
-
-    setAccessToken (state, payload)
-    {
-      state.accessToken = payload;
-    },
-
-    setRefreshToken (state, payload)
-    {
-      state.refreshToken = payload;
     }
   },
 
@@ -71,22 +48,14 @@ export default {
       {
         commit('setId', response.data.id);
         commit('setLogin', response.data.login);
-        commit('setAccessToken', response.data.accessToken);
-        commit('setRefreshToken', response.data.refreshToken);
       }
 
       return response;
     },
 
-    async refresh ({ commit }, payload)
+    async refresh (context)
     {
-      let { data: response } = await http.post('/auth/reftoken', payload);
-
-      if (response.success)
-      {
-        commit('setAccessToken', response.data.accessToken);
-        commit('setRefreshToken', response.data.refreshToken);
-      }
+      let { data: response } = await http.post('/auth/reftoken');
 
       return response;
     },
