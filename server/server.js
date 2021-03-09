@@ -1,9 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const getMongoConnection = require('./db/index');
 
@@ -11,10 +9,9 @@ const app = express();
 
 const PORT = 3000;
 
-const authRoutes = require('./routes/auth');
 const verifyToken = require('./verifyToken');
 
-const allowlist = ['http://localhost:8080', 'http://localhost:3000']
+const allowlist = ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:4000'];
 const corsOptionsDelegate = function (req, callback) {
   let corsOptions = { credentials: true };
 
@@ -23,14 +20,12 @@ const corsOptionsDelegate = function (req, callback) {
   } else {
     corsOptions.origin = false;
   }
-  callback(null, corsOptions)
+  callback(null, corsOptions);
 }
 
 app.use(express.json());
 app.use(cors(corsOptionsDelegate));
 app.use(cookieParser());
-
-require('./routes/auth');
 
 app.get('/api/posts', verifyToken, async (req, res) => {
   res.send([{
@@ -39,8 +34,6 @@ app.get('/api/posts', verifyToken, async (req, res) => {
     title: 'Post 2'
   }])
 });
-
-app.use('/auth', authRoutes);
 
 app.listen(PORT, async () => {
   await getMongoConnection();
