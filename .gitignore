@@ -3,6 +3,7 @@ node_modules
 /dist
 /server/.env
 *.rest
+.env
 
 
 # local env files
