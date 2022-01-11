@@ -1,17 +1,15 @@
 const mongoose = require('mongoose');
 
-let mongoConnection;
+let mongoConnection = null;
 
 async function createMongoConnection()
 {
   try
   {
-    const connection = await mongoose.connect(process.env.DB_URL, {
+    await mongoose.connect(process.env.DB_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-
-    return connection;
   } catch (err)
   {
     console.error(err);
