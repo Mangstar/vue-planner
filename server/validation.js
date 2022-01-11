@@ -1,14 +1,11 @@
 const Joi = require('joi');
 
-function registerValidation (formData)
-{
-  function handlerLoginError (errors)
-  {
+function registerValidation (formData) {
+  function handlerLoginError (errors) {
     let errorMessage = '';
 
     errors.forEach(error => {
-      switch (error.code)
-      {
+      switch (error.code) {
         case 'string.base':
           errorMessage = 'Поле `Login` должно быть строкой';
           break;
@@ -28,13 +25,11 @@ function registerValidation (formData)
     return new Error(errorMessage);
   }
 
-  function handleEmailError (errors)
-  {
+  function handleEmailError (errors) {
     let errorMessage = '';
 
     errors.forEach(error => {
-      switch (error.code)
-      {
+      switch (error.code) {
         case 'string.base':
         case 'string.empty':
           errorMessage = 'Поле `Email` должно быть строкой';
@@ -48,13 +43,11 @@ function registerValidation (formData)
     return new Error(errorMessage);
   }
 
-  function handlePasswordError (errors)
-  {
+  function handlePasswordError (errors) {
     let errorMessage = '';
 
     errors.forEach(error => {
-      switch (error.code)
-      {
+      switch (error.code) {
         case 'string.base':
           errorMessage = 'Пароль должен быть строкой';
           break;
@@ -96,17 +89,14 @@ function registerValidation (formData)
   return registerSchema.validate(formData);
 }
 
-function loginValidation (formData)
-{
-  function handleLoginTextField (errors)
-  {
+function loginValidation (formData) {
+  function handleLoginTextField (errors) {
     let errorMessage = '';
 
     errors.forEach(error => {
       let fieldLabel = error.local.key === 'login' ? 'Логин' : 'Пароль';
 
-      switch (error.code)
-      {
+      switch (error.code) {
         case 'string.base':
           errorMessage = `${fieldLabel} должен быть строкой`;
           break;

@@ -5,34 +5,29 @@ const User = require('../db/models/user');
 const RToken = require('../db/models/rtoken');
 const { registerValidation, loginValidation } = require('../validation');
 
-function _generateAToken (payload)
-{
+function _generateAToken (payload) {
   return jwt.sign(
     payload,
     process.env.ACCESS_SECRET_TOKEN, { expiresIn: '10m' }
   );
 }
 
-function _generateRToken (payload)
-{
+function _generateRToken (payload) {
   return jwt.sign(
     payload,
     process.env.REFRESH_SECRET_TOKEN, { expiresIn: '8h' }
   )
 }
 
-function _getCookieOptions ()
-{
+function _getCookieOptions () {
   return {
     expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
     httpOnly: true
   }
 }
 
-async function updateRToken (user, refreshToken)
-{
-  try
-  {
+async function updateRToken (user, refreshToken) {
+  try {
     await RToken.findOneAndDelete({
       token: refreshToken
     });
@@ -41,8 +36,7 @@ async function updateRToken (user, refreshToken)
       token: refreshToken
     }).save();
   }
-  catch (error)
-  {
+  catch (error) {
     throw new Error(error.message);
   }
 }
@@ -55,10 +49,8 @@ router.post('/register', async (req, res) => {
   };
   const { error } = registerValidation(userData);
 
-  try
-  {
-    if (error)
-    {
+  try {
+    if (error) {
       throw new Error(error.message);
     }
 
@@ -66,8 +58,7 @@ router.post('/register', async (req, res) => {
       login: userData.login
     });
 
-    if (existsUser)
-    {
+    if (existsUser) {
       throw new Error('Пользователь с указанным логином уже существует');
     }
 
@@ -80,8 +71,7 @@ router.post('/register', async (req, res) => {
     });
     const response = await user.save();
 
-    if (response)
-    {
+    if (response) {
       res.json({
         success: true,
         message: 'Регистрация прошла успешно'
@@ -104,10 +94,8 @@ router.post('/login', async (req, res) => {
   };
   const { error } = loginValidation(userData);
 
-  try
-  {
-    if (error)
-    {
+  try {
+    if (error) {
       throw new Error(error.message);
     }
 
@@ -115,15 +103,13 @@ router.post('/login', async (req, res) => {
       login: userData.login
     });
 
-    if (!existsUser)
-    {
+    if (!existsUser) {
       throw new Error('Неверный логин или пароль');
     }
 
     const isPasswordCorrect = await bcript.compare(userData.password, existsUser.password);
 
-    if (!isPasswordCorrect)
-    {
+    if (!isPasswordCorrect) {
       throw new Error('Неверный логин или пароль');
     }
 
@@ -141,8 +127,7 @@ router.post('/login', async (req, res) => {
       }
     });
   }
-  catch (error)
-  {
+  catch (error) {
     return res.status(400).json({
       success: false,
       message: error.message
@@ -153,23 +138,19 @@ router.post('/login', async (req, res) => {
 router.post('/reftoken', async (req, res) => {
   const token = req.cookies.refreshToken;
 
-  try
-  {
-    if (!token)
-    {
-      return res.status(400)
-                .json({
-                  success: false,
-                  message: 'Refresh токен не передан'
-                });
+  try {
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh токен не передан'
+      });
     }
 
     const existsToken = await RToken.findOne({
       token
     });
 
-    if (!existsToken)
-    {
+    if (!existsToken) {
       throw new Error('Ваш токен не действителен');
     }
 
@@ -190,23 +171,19 @@ router.post('/reftoken', async (req, res) => {
       }
     });
   }
-  catch (error)
-  {
-    res.status(403)
-       .json({
-         success: false,
-         message: error.message
-       });
+  catch (error) {
+    res.status(403).json({
+       success: false,
+       message: error.message
+     });
   }
 });
 
 router.post('/logout', async (req, res) => {
   const token = req.cookies.refreshToken;
 
-  try
-  {
-    if (!token)
-    {
+  try {
+    if (!token) {
       throw new Error('Refresh токен не передан');
     }
 
@@ -214,32 +191,27 @@ router.post('/logout', async (req, res) => {
       token
     });
 
-    if (!existsToken)
-    {
-      return res.status(403)
-                .json({
-                  message: 'Ваш токен не действителен'
-                })
+    if (!existsToken) {
+      return res.status(403).json({
+        message: 'Ваш токен не действителен'
+      });
     }
 
     const response = await RToken.findOneAndDelete({
       token
     });
 
-    if (response)
-    {
+    if (response) {
       res.clearCookie('refreshToken').json({
         success: true
       });
     }
   }
-  catch (error)
-  {
-    res.status(400)
-       .json({
-         success: false,
-         message: error.message
-       });
+  catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 
