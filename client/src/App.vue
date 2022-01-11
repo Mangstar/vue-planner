@@ -19,6 +19,7 @@
 import authUser from '@/components/AuthUser';
 import http from '@/api/index';
 import router from '@/router/index';
+import axios from 'axios';
 
 import { mapGetters, mapMutations } from 'vuex';
 
